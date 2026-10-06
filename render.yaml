@@ -66,6 +66,8 @@ services:
         sync: false
       - key: S3_BUCKET
         sync: false
+      - key: S3_ENDPOINT
+        sync: false
 
   # ─── Notification Service ───────────────────────────────────────────────────
   - type: web
