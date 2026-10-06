@@ -127,20 +127,20 @@ docker exec meatec_localstack awslocal s3 mb s3://meatec-documents --region us-e
 docker compose up --build
 ```
 
-### 4b. Run locally (development)
+### 4b. Run locally
 
 ```bash
 # Terminal 1
-cd auth-service && npm run dev
+cd auth-service && npm start
 
 # Terminal 2
-cd passport-service && npm run dev
+cd passport-service && npm start
 
 # Terminal 3
-cd document-service && npm run dev
+cd document-service && npm start
 
 # Terminal 4
-cd notification-service && npm run dev
+cd notification-service && npm start
 ```
 
 ### 5. Run tests
