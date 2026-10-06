@@ -69,6 +69,11 @@ services:
       - '3001:3001'
     env_file:
       - ./auth-service/.env
+    environment:
+      # Override localhost values from .env with Docker-internal hostnames
+      MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@mongo:27017/auth_db?authSource=admin
+    volumes:
+      - ./auth-service/logs:/app/logs
     depends_on:
       - mongo
     networks:
@@ -84,6 +89,12 @@ services:
       - '3002:3002'
     env_file:
       - ./passport-service/.env
+    environment:
+      MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@mongo:27017/passport_db?authSource=admin
+      AUTH_SERVICE_URL: http://auth-service:3001
+      KAFKA_BROKERS: kafka:29092
+    volumes:
+      - ./passport-service/logs:/app/logs
     depends_on:
       - mongo
       - kafka
@@ -102,9 +113,11 @@ services:
     env_file:
       - ./document-service/.env
     environment:
-      MONGO_URI: mongodb://root:secret@mongo:27017/document_db?authSource=admin
+      MONGO_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@mongo:27017/document_db?authSource=admin
       AUTH_SERVICE_URL: http://auth-service:3001
       S3_ENDPOINT: http://localstack:4566
+    volumes:
+      - ./document-service/logs:/app/logs
     depends_on:
       - mongo
       - localstack
@@ -122,6 +135,8 @@ services:
       - ./notification-service/.env
     environment:
       KAFKA_BROKERS: kafka:29092
+    volumes:
+      - ./notification-service/logs:/app/logs
     depends_on:
       - kafka
       - auth-service

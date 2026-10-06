@@ -78,20 +78,20 @@ Configure each service's `.env`:
 ```bash
 # auth-service/.env
 PORT=3001
-MONGO_URI=mongodb://root:secret@localhost:27018/auth_db?authSource=admin
-JWT_SECRET=your_jwt_secret_here
+MONGO_URI=mongodb://<MONGO_ROOT_USER>:<MONGO_ROOT_PASS>@localhost:27018/auth_db?authSource=admin
+JWT_SECRET=your_strong_jwt_secret_here
 JWT_EXPIRES_IN=1d
 BCRYPT_ROUNDS=12
 
 # passport-service/.env
 PORT=3002
-MONGO_URI=mongodb://root:secret@localhost:27018/passport_db?authSource=admin
+MONGO_URI=mongodb://<MONGO_ROOT_USER>:<MONGO_ROOT_PASS>@localhost:27018/passport_db?authSource=admin
 AUTH_SERVICE_URL=http://localhost:3001
 KAFKA_BROKERS=localhost:9092
 
 # document-service/.env
 PORT=3003
-MONGO_URI=mongodb://root:secret@localhost:27018/document_db?authSource=admin
+MONGO_URI=mongodb://<MONGO_ROOT_USER>:<MONGO_ROOT_PASS>@localhost:27018/document_db?authSource=admin
 AUTH_SERVICE_URL=http://localhost:3001
 AWS_REGION=us-east-1
 AWS_ACCESS_KEY_ID=test
@@ -293,9 +293,9 @@ field: description  → optional string
 
 ## MongoDB Connection Strings
 
-For MongoDB Compass or similar tools:
+For MongoDB Compass or similar tools (replace with your configured credentials):
 ```
-mongodb://root:secret@localhost:27018
+mongodb://<MONGO_ROOT_USER>:<MONGO_ROOT_PASS>@localhost:27018
 ```
 
 | Database | Collection | Contents |

@@ -8,7 +8,10 @@ const options = {
       version: '1.0.0',
       description: 'Battery Passport data access microservice',
     },
-    servers: [{ url: `http://localhost:${process.env.PORT || 3002}` }],
+    servers: [
+      { url: '/', description: 'Current environment (Local or Render)' },
+      { url: `http://localhost:${process.env.PORT || 3002}`, description: 'Localhost' },
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {

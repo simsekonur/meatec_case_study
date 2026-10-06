@@ -20,7 +20,7 @@ const manufacturerInformationSchema = new mongoose.Schema(
 
 const generalInformationSchema = new mongoose.Schema(
   {
-    batteryIdentifier: { type: String, required: true },
+    batteryIdentifier: { type: String, required: true, unique: true, index: true },
     batteryModel: batteryModelSchema,
     batteryMass: { type: Number },
     batteryCategory: { type: String, enum: ['EV', 'Industrial', 'Stationary', 'Other'] },

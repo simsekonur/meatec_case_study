@@ -1,0 +1,13 @@
+{
+  "name": "meatec-battery-passport",
+  "version": "1.0.0",
+  "description": "MEAtec Battery Passport Platform — monorepo root",
+  "private": true,
+  "scripts": {
+    "test": "npm test --prefix auth-service && npm test --prefix passport-service && npm test --prefix document-service && npm test --prefix notification-service",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose up -d --build",
+    "docker:bucket": "docker exec meatec_localstack awslocal s3 mb s3://meatec-documents --region us-east-1 2>/dev/null || echo 'Bucket already exists'"
+  }
+}

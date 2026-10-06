@@ -8,7 +8,10 @@ const options = {
       version: '1.0.0',
       description: 'Authentication microservice for the Battery Passport Platform',
     },
-    servers: [{ url: `http://localhost:${process.env.PORT || 3001}` }],
+    servers: [
+      { url: '/', description: 'Current environment (Local or Render)' },
+      { url: `http://localhost:${process.env.PORT || 3001}`, description: 'Localhost' },
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
