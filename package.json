@@ -5,9 +5,8 @@
   "private": true,
   "scripts": {
     "test": "npm test --prefix auth-service && npm test --prefix passport-service && npm test --prefix document-service && npm test --prefix notification-service",
-    "docker:up": "docker compose up -d",
+    "docker:up": "docker compose up --build -d",
     "docker:down": "docker compose down",
-    "docker:build": "docker compose up -d --build",
-    "docker:bucket": "docker exec meatec_localstack awslocal s3 mb s3://meatec-documents --region us-east-1 2>/dev/null || echo 'Bucket already exists'"
+    "docker:logs": "docker compose logs -f"
   }
 }

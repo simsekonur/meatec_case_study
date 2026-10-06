@@ -56,100 +56,124 @@ A microservices-based backend system for managing digital battery passports, bui
 
 ### Prerequisites
 
-- Docker Desktop
-- Node.js 20+
-- npm
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (running)
+- Node.js 20+ & npm (if running services locally or executing tests)
 
-### 1. Clone and configure
+---
+
+### 1. Environment Configuration
+
+Clone the repository and copy the example environment files:
 
 ```bash
 git clone <repo-url>
 cd meatec_case_study
-```
 
-Create root `.env`:
-```bash
+# Root environment (MongoDB root credentials)
 cp .env.example .env
-# Edit .env and fill in MONGO_ROOT_USER, MONGO_ROOT_PASS
+
+# Service-specific environments
+cp auth-service/.env.example auth-service/.env
+cp passport-service/.env.example passport-service/.env
+cp document-service/.env.example document-service/.env
+cp notification-service/.env.example notification-service/.env
 ```
 
-Configure each service's `.env`:
+1. **In root `.env`**: Set your `MONGO_ROOT_USER` and `MONGO_ROOT_PASS`.
+2. **In `auth-service/.env`, `passport-service/.env`, `document-service/.env`**: Replace `<MONGO_ROOT_USER>` and `<MONGO_ROOT_PASS>` with the values you set above.
+3. **In `notification-service/.env`**: Add your free [Mailtrap](https://mailtrap.io) credentials (`SMTP_USER` and `SMTP_PASS`).
+
+> 💡 **Note on Networking:** All containers run inside an isolated Docker bridge network (`meatec_net`). Docker Compose automatically handles internal routing (`mongo:27017`, `kafka:29092`, `localstack:4566`, `auth-service:3001`), while mapping public ports (`3001`, `3002`, `3003`, `27018`) to `localhost` so you can immediately interact with them via your browser, Swagger, or Postman.
+
+---
+
+### 2. Start Everything with One Command
+
+Spin up all 4 microservices along with MongoDB, Kafka, Zookeeper, and LocalStack:
 
 ```bash
-# auth-service/.env
-PORT=3001
-MONGO_URI=mongodb://<MONGO_ROOT_USER>:<MONGO_ROOT_PASS>@localhost:27018/auth_db?authSource=admin
-JWT_SECRET=your_strong_jwt_secret_here
-JWT_EXPIRES_IN=1d
-BCRYPT_ROUNDS=12
-
-# passport-service/.env
-PORT=3002
-MONGO_URI=mongodb://<MONGO_ROOT_USER>:<MONGO_ROOT_PASS>@localhost:27018/passport_db?authSource=admin
-AUTH_SERVICE_URL=http://localhost:3001
-KAFKA_BROKERS=localhost:9092
-
-# document-service/.env
-PORT=3003
-MONGO_URI=mongodb://<MONGO_ROOT_USER>:<MONGO_ROOT_PASS>@localhost:27018/document_db?authSource=admin
-AUTH_SERVICE_URL=http://localhost:3001
-AWS_REGION=us-east-1
-AWS_ACCESS_KEY_ID=test
-AWS_SECRET_ACCESS_KEY=test
-S3_ENDPOINT=http://localhost:4566
-S3_BUCKET=meatec-documents
-
-# notification-service/.env
-KAFKA_BROKERS=localhost:9092
-SMTP_HOST=sandbox.smtp.mailtrap.io
-SMTP_PORT=2525
-SMTP_USER=your_mailtrap_user
-SMTP_PASS=your_mailtrap_password
-EMAIL_FROM=noreply@meatec-battery.com
-NOTIFY_TO=admin@meatec-battery.com
+npm run docker:up
 ```
 
-### 2. Start infrastructure
+*(Under the hood, this executes `docker compose up --build -d`).*
 
+* **Zero-Touch LocalStack S3**: The S3 bucket `meatec-documents` is initialized automatically on container startup via `scripts/init-localstack.sh` mounted in `/etc/localstack/init/ready.d/`.
+* **Stream Logs**: `npm run docker:logs` (or `docker compose logs -f notification-service`)
+* **Check Status**: `docker compose ps`
+* **Stop Everything**: `npm run docker:down`
+
+---
+
+### 3. Verification & Smoke Test (3 Steps)
+
+Once containers are running, verify the full end-to-end pipeline:
+
+#### Step 1: Register an Admin User
 ```bash
-docker compose up mongo kafka zookeeper localstack -d
+curl -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@meatec.com",
+    "password": "Password123!",
+    "role": "admin"
+  }'
 ```
+*Returns `201 Created` with JWT `token` and user details. Copy the token.*
 
-### 3. Create S3 bucket in LocalStack
-
+#### Step 2: Create a Battery Passport
 ```bash
-docker exec meatec_localstack awslocal s3 mb s3://meatec-documents --region us-east-1
+TOKEN="<paste-your-jwt-token-here>"
+
+curl -X POST http://localhost:3002/api/passports \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": {
+      "generalInformation": {
+        "batteryIdentifier": "BAT-TEST-001",
+        "batteryModel": {
+          "id": "MOD-001",
+          "modelName": "CellPack Ultra"
+        },
+        "batteryCategory": "EV",
+        "batteryMass": 450
+      }
+    }
+  }'
 ```
+*Returns `201 Created`. The passport is stored in MongoDB, and a `passport.created` event is published to Kafka.*
 
-### 4a. Run with Docker (full stack)
+#### Step 3: Verify Email in Mailtrap & Check Logs
+1. **Check Notification Service Logs**:
+   ```bash
+   cat notification-service/logs/combined.log
+   ```
+   You will see the event consumption and email dispatch:
+   ```text
+   [INFO] Kafka event received ← passport.created | key: <passportId>
+   [INFO] [Email Dispatch] Preparing to send email → To: admin@meatec.com | Subject: "🔋 Battery Passport Created"
+   [INFO] [Email Dispatch] Email sent successfully → messageId: <messageId>
+   ```
+2. **View Email in Mailtrap**:
+   Log into [Mailtrap Dashboard](https://mailtrap.io) → **Email Testing** → **Inboxes** → **My Inbox**. You will see the email with formatted HTML table details:
+
+   ![Mailtrap Notification Email Received](docs/email_sent.png)
+
+---
+
+### 4. Running Tests
+
+Run all unit and integration test suites across all 4 microservices:
 
 ```bash
-docker compose up --build
-```
+# Run all test suites in one go:
+npm test
 
-### 4b. Run locally
-
-```bash
-# Terminal 1
-cd auth-service && npm start
-
-# Terminal 2
-cd passport-service && npm start
-
-# Terminal 3
-cd document-service && npm start
-
-# Terminal 4
-cd notification-service && npm start
-```
-
-### 5. Run tests
-
-```bash
-cd auth-service && npm test
-cd passport-service && npm test
-cd document-service && npm test
-cd notification-service && npm test
+# Or run individual service tests:
+npm test --prefix auth-service
+npm test --prefix passport-service
+npm test --prefix document-service
+npm test --prefix notification-service
 ```
 
 ---
