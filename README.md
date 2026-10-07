@@ -327,3 +327,17 @@ mongodb://<MONGO_ROOT_USER>:<MONGO_ROOT_PASS>@localhost:27018
 | `auth_db` | `users` | Registered users |
 | `passport_db` | `batterypassports` | Battery passports |
 | `document_db` | `documents` | File metadata |
+
+---
+
+## Cloud Deployment (Render)
+
+The microservices are deployed on **Render** using [`render.yaml`](render.yaml) connected to MongoDB Atlas and Supabase S3 storage.
+
+> **Note on Kafka in Cloud Deployment:**
+> The live deployment on Render provides publicly accessible REST endpoints and Swagger interfaces. However, because no free cloud Kafka instance is available without credit card requirements, Kafka is not connected in the Render environment (the services handle this gracefully and serve all HTTP requests normally).
+> 
+> **The complete end-to-end architecture**—including Apache Kafka event streaming, Zookeeper, the Notification consumer, LocalStack S3, and Mailtrap email dispatch—**runs out-of-the-box via Docker Compose**:
+> ```bash
+> npm run docker:up
+> ```
