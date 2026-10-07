@@ -1,5 +1,7 @@
 # MEAtec Battery Passport Platform — Backend
 
+[![CI Pipeline](https://github.com/simsekonur/meatec_case_study/actions/workflows/ci.yml/badge.svg)](https://github.com/simsekonur/meatec_case_study/actions/workflows/ci.yml)
+
 A microservices-based backend system for managing digital battery passports, built for the EU EV sustainability ecosystem.
 
 ---
@@ -305,13 +307,15 @@ field: description  → optional string
 
 ---
 
-## Swagger Docs
+## Swagger Docs & Interactive API Reference
 
-| Service | URL |
-|---|---|
-| Auth Service | http://localhost:3001/api-docs |
-| Passport Service | http://localhost:3002/api-docs |
-| Document Service | http://localhost:3003/api-docs |
+Interactive OpenAPI documentation is available for both local evaluation and the live cloud deployment on Render:
+
+| Service | Local URL | Live Hosted API (Render) |
+|---|---|---|
+| **Auth Service** | http://localhost:3001/api-docs | [meatec-auth-service.onrender.com/api-docs](https://meatec-auth-service.onrender.com/api-docs) |
+| **Passport Service** | http://localhost:3002/api-docs | [meatec-passport-service.onrender.com/api-docs](https://meatec-passport-service.onrender.com/api-docs) |
+| **Document Service** | http://localhost:3003/api-docs | [meatec-document-service.onrender.com/api-docs](https://meatec-document-service.onrender.com/api-docs) |
 
 ---
 
